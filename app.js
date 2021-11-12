@@ -1,6 +1,7 @@
 const connexion = require('./db-config');
 const express = require('express');
 const { createConnection } = require('net');
+const { application } = require('express');
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -21,6 +22,10 @@ app.get('/api/movies', (req, res) => {
       res.send('Error retrieving data from database');
     })
 });
+
+app.post('/api/movies', (req, res) => {
+  res.send('Post route is working')
+})
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
