@@ -80,7 +80,10 @@ app.get('/api/users/:id', (req, res) => {
 });
 
 app.get('/api/users', (req, res) => {
-  connexion.promise().query('SELECT * FROM users')
+  let query = 'SELECT * FROM users';
+  if(req.query.language) query += ' WHERE language = ?'
+
+  connexion.promise().query(query, [req.query.language])
     .then((result) => {
       res.json(result[0]);
     }).catch((err)=> {
