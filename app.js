@@ -51,6 +51,20 @@ app.put("/api/movies/:id", (req, res) => {
     })
 })
 
+app.delete("/api/movies/:id", (req, res) => {
+  const movieId = req.params.id;
+
+  connexion.promise().query(
+    'DELETE FROM movies WHERE id = ?',
+    [movieId])
+    .then((result) => {
+      res.send('Movie deleted successfully')
+    })
+    .catch((err) => {
+      res.send("Error deleting the movie")
+    })
+});
+
 app.get('/api/users', (req, res) => {
   connexion.promise().query('SELECT * FROM users')
     .then((result) => {
