@@ -58,6 +58,21 @@ app.post('/api/users', (req, res) => {
     })
 })
 
+app.put("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+  const userPropsToUpdate = req.body;
+
+  connexion.promise().query(
+    'UPDATE users SET ? WHERE id = ?',
+    [userPropsToUpdate, userId])
+    .then((result) => {
+      res.send("User updated successfully")
+    })
+    .catch((err) => {
+      res.send("Error updating the user")
+    })
+})
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
