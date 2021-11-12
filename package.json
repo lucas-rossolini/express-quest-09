@@ -1,16 +1,23 @@
+
+  
 {
-  "name": "express-quest-01",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "express-quests",
+  "repository": {
+    "url": "https://github.com/WildCodeSchool/Express-Quests"
+  },
+  "version": "0.0.1",
+  "main": "app.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mysql2": "^2.2.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
