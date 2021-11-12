@@ -14,10 +14,38 @@ connexion.connect((err) => {
 
 app.use(express.json());
 
-app.get('/api/movies', (req, res) => {
-  connexion.promise().query('SELECT * FROM movies')
+app.get('/api/movies/:id', (req, res) => {
+  const movieId = req.params.id;
+  
+  connexion.promise().query(
+    'SELECT * FROM movies WHERE id = ?',
+    [movieId])
     .then((result) => {
-      res.json(result[0]);
+      if (result[0].length) res.status(201).json(result[0]);
+      else res.status(404).send('Movie not found');
+    }).catch((err)=> {
+      res.send('Error retrieving data from database');
+    })
+});
+
+app.get('/api/movies', (req, res) => {
+  let query = 'SELECT * FROM movies';
+  let value = [];
+
+  if(req.query.color && req.query.max_duration) {
+    query += ' WHERE color = ? AND duration = ?';
+    value.push(req.query.color, req.query.max_duration)
+  } else if (req.query.color){ 
+    query += ' WHERE color = ?';
+    value.push(req.query.color)
+  } else if (req.query.max_duration) {
+    query += ' WHERE duration < ?';
+    value.push(req.query.max_duration)
+  }
+
+  connexion.promise().query(query, value)
+    .then((result) => {
+      res.status(200).json(result[0]);
     }).catch((err)=> {
       res.send('Error retrieving data from database');
     })
