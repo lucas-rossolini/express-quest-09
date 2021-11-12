@@ -65,6 +65,19 @@ app.delete("/api/movies/:id", (req, res) => {
     })
 });
 
+app.get('/api/users/:id', (req, res) => {
+  const userId = req.params.id;
+  
+  connexion.promise().query(
+    'SELECT * FROM users WHERE id = ?',
+    [userId])
+    .then((result) => {
+      res.json(result[0]);
+    }).catch((err)=> {
+      res.send('Error retrieving data from database');
+    })
+});
+
 app.get('/api/users', (req, res) => {
   connexion.promise().query('SELECT * FROM users')
     .then((result) => {
