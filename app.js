@@ -36,6 +36,21 @@ app.post('/api/movies', (req, res) => {
     })
 })
 
+app.put("/api/movies/:id", (req, res) => {
+  const movieId = req.params.id;
+  const moviesPropsToUpdate = req.body;
+
+  connexion.promise().query(
+    'UPDATE movies SET ? WHERE id = ?',
+    [moviesPropsToUpdate, movieId])
+    .then((result) => {
+      res.send("Movie updated successfully")
+    })
+    .catch((err) => {
+      res.send("Error updating the movie")
+    })
+})
+
 app.get('/api/users', (req, res) => {
   connexion.promise().query('SELECT * FROM users')
     .then((result) => {
