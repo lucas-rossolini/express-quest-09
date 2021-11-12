@@ -88,6 +88,20 @@ app.put("/api/users/:id", (req, res) => {
     })
 })
 
+app.delete("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+
+  connexion.promise().query(
+    'DELETE FROM users WHERE id = ?',
+    [userId])
+    .then((result) => {
+      res.send('User deleted successfully')
+    })
+    .catch((err) => {
+      res.send("Error deleting the user")
+    })
+});
+
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
