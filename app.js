@@ -14,13 +14,12 @@ connexion.connect((err) => {
 })
 
 app.get('/api/movies', (req, res) => {
-  connection.query('SELECT * FROM movies', (err, result) => {
-    if (err) {
-      res.status(500).send('Error retrieving data from database');
-    } else {
+  connexion.promise().query('SELECT * FROM movies')
+    .then((result) => {
       res.json(result);
-    }
-  });
+    }).catch((err)=> {
+      res.send('Error retrieving data from database');
+    })
 });
 
 app.listen(port, () => {
