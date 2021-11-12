@@ -1,7 +1,5 @@
 const connexion = require('./db-config');
 const express = require('express');
-const { createConnection } = require('net');
-const { application } = require('express');
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -14,6 +12,8 @@ connexion.connect((err) => {
   }
 })
 
+app.use(express.json());
+
 app.get('/api/movies', (req, res) => {
   connexion.promise().query('SELECT * FROM movies')
     .then((result) => {
@@ -24,7 +24,16 @@ app.get('/api/movies', (req, res) => {
 });
 
 app.post('/api/movies', (req, res) => {
-  res.send('Post route is working')
+  const { title, director, year, color, duration } = req.body;
+  connexion.promise().query(
+    'INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)',
+    [title, director, year, color, duration])
+    .then((result) =>  {
+      res.send('Movie successfully saved');
+    })
+    .catch((err) => {
+      res.send('Error saving the movie');
+    })
 })
 
 app.listen(port, () => {
