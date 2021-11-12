@@ -17,7 +17,7 @@ app.use(express.json());
 app.get('/api/movies', (req, res) => {
   connexion.promise().query('SELECT * FROM movies')
     .then((result) => {
-      res.json(result);
+      res.json(result[0]);
     }).catch((err)=> {
       res.send('Error retrieving data from database');
     })
@@ -33,6 +33,28 @@ app.post('/api/movies', (req, res) => {
     })
     .catch((err) => {
       res.send('Error saving the movie');
+    })
+})
+
+app.get('/api/users', (req, res) => {
+  connexion.promise().query('SELECT * FROM users')
+    .then((result) => {
+      res.json(result[0]);
+    }).catch((err)=> {
+      res.send('Error retrieving data from database');
+    })
+});
+
+app.post('/api/users', (req, res) => {
+  const { firstname, lastname, email } = req.body;
+  connexion.promise().query(
+    'INSERT INTO users(firstname, lastname, email) VALUES (?, ?, ?)',
+    [firstname, lastname, email])
+    .then((result) =>  {
+      res.send('User successfully saved');
+    })
+    .catch((err) => {
+      res.send('Error saving the user');
     })
 })
 
