@@ -1,5 +1,6 @@
 const connexion = require('./db-config');
 const express = require('express');
+const Joi = require('joi');
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -45,45 +46,70 @@ app.get('/api/movies', (req, res) => {
 
 app.post('/api/movies', (req, res) => {
   const { title, director, year, color, duration } = req.body;
-  console.log(title);
-  connexion.promise().query(
-    'INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)',
-    [title, director, year, color, duration])
-    .then((result) => {
-      console.log(result[0].ResultSetHeader)
-      const movies = { id: result[0].insertId, title, director, year, color, duration }
-      res.send(movies);
-    })
-    .catch((err) => {
-      res.send('Error saving the movie');
-    })
+
+  const { error } = Joi.object({
+    title: Joi.string().max(255),
+    director: Joi.string().max(255),
+    year: Joi.number().integer().min(1888).required(),
+    color: Joi.number().required().min(0),
+    duration: Joi.number().integer().min(1).required(),
+  }).validate({ title, director, year, color, duration }, { abortEarly: false });
+
+  if (error) {
+    res.status(422).json({ validationErrors: error.details });
+  } else {
+    connexion.promise().query(
+      'INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)',
+      [title, director, year, color, duration])
+      .then((result) => {
+        console.log(result[0].ResultSetHeader)
+        const movies = { id: result[0].insertId, title, director, year, color, duration }
+        res.send(movies);
+      })
+      .catch((err) => {
+        res.send('Error saving the movie');
+      })
+  }
 })
 
 app.put("/api/movies/:id", (req, res) => {
   console.log("API / Movies / id to put")
   const movieId = req.params.id;
-  const moviesPropsToUpdate = req.body;
+  const { title, director, year, color, duration } = req.body;
 
-  connexion.promise().query(
-    'SELECT * FROM movies WHERE id = ?',
-    [movieId])
-    .then((result) => {
-      if (result[0].length) {
-        connexion.promise().query(
-          'UPDATE movies SET ? WHERE id = ?',
-          [moviesPropsToUpdate, movieId])
-          .then((result) => {
-            res.send({ id: movieId, ...moviesPropsToUpdate })
-          })
-          .catch((err) => {
-            res.send("Error updating the movies")
-          })
-      }
-      else res.status(404).send('Movie not found');
-    }).catch((err) => {
-      res.send('Error retrieving data from database');
-    })
+  const { error } = Joi.object({
+    title: Joi.string().max(255),
+    director: Joi.string().max(255),
+    year: Joi.number().integer().min(1888),
+    color: Joi.number().min(0),
+    duration: Joi.number().integer().min(1),
+  }).validate({ title, director, year, color, duration }, { abortEarly: false });
 
+  if (error) {
+    res.status(422).json({ validationErrors: error.details });
+  } else {
+
+    connexion.promise().query(
+      'SELECT * FROM movies WHERE id = ?',
+      [movieId])
+      .then((result) => {
+        if (result[0].length) {
+          console.log(req.body)
+          connexion.promise().query(
+            'UPDATE movies SET ? WHERE id = ?',
+            [req.body, movieId])
+            .then((result) => {
+              res.send({ id: movieId, ...req.body })
+            })
+            .catch((err) => {
+              res.send("Error updating the movies")
+            })
+        }
+        else res.status(404).send('Movie not found');
+      }).catch((err) => {
+        res.send('Error retrieving data from database');
+      })
+  }
 })
 
 app.get('/api/users/:id', (req, res) => {
@@ -113,31 +139,56 @@ app.get('/api/users', (req, res) => {
 });
 
 app.post('/api/users', (req, res) => {
-  const { firstname, lastname, email } = req.body;
-  connexion.promise().query(
-    'INSERT INTO users(firstname, lastname, email) VALUES (?, ?, ?)',
-    [firstname, lastname, email])
-    .then((result) => {
-      res.send('User successfully saved');
-    })
-    .catch((err) => {
-      res.send('Error saving the user');
-    })
+  const { firstname, lastname, email, city, language } = req.body;
+
+  const { error } = Joi.object({
+    email: Joi.string().email().max(255).required(),
+    firstname: Joi.string().max(255).required(),
+    lastname: Joi.string().max(255).required(),
+    city: Joi.string().allow(null, '').max(255),
+    language: Joi.string().allow(null, '').max(255),
+  }).validate({ firstname, lastname, email, city, language }, { abortEarly: false });
+
+  if (error) {
+    res.status(422).json({ validationErrors: error.details });
+  } else {
+    connexion.promise().query(
+      'INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)',
+      [firstname, lastname, email, city, language])
+      .then((result) => {
+        res.send('User successfully saved');
+      })
+      .catch((err) => {
+        res.send('Error saving the user');
+      })
+  }
 })
 
 app.put("/api/users/:id", (req, res) => {
   const userId = req.params.id;
-  const userPropsToUpdate = req.body;
+  const { email, firstname, lastname, city, language } = req.body;
 
-  connexion.promise().query(
-    'UPDATE users SET ? WHERE id = ?',
-    [userPropsToUpdate, userId])
-    .then((result) => {
-      res.send("User updated successfully")
-    })
-    .catch((err) => {
-      res.send("Error updating the user")
-    })
+  const { error } = Joi.object({
+    email: Joi.string().email().max(255),
+    firstname: Joi.string().max(255),
+    lastname: Joi.string().max(255),
+    city: Joi.string().allow(null, '').max(255),
+    language: Joi.string().allow(null, '').max(255),
+  }).validate({ firstname, lastname, email, city, language }, { abortEarly: false });
+
+  if (error) {
+    res.status(422).json({ validationErrors: error.details });
+  } else {
+    connexion.promise().query(
+      'UPDATE users SET ? WHERE id = ?',
+      [req.body, userId])
+      .then((result) => {
+        res.send("User updated successfully")
+      })
+      .catch((err) => {
+        res.send("Error updating the user")
+      })
+  }
 })
 
 app.delete("/api/users/:id", (req, res) => {
