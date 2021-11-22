@@ -53,11 +53,14 @@ app.get('/api/movies', (req, res) => {
 
 app.post('/api/movies', (req, res) => {
   const { title, director, year, color, duration } = req.body;
+  console.log(title);
   connexion.promise().query(
     'INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)',
     [title, director, year, color, duration])
     .then((result) => {
-      res.send('Movie successfully saved');
+      console.log(result[0].ResultSetHeader)
+      const movies = { id: result[0].insertId, title, director, year, color, duration }
+      res.send(movies);
     })
     .catch((err) => {
       res.send('Error saving the movie');
