@@ -17,15 +17,7 @@ app.use(express.json());
 app.get('/api/movies/:id', (req, res) => {
   const movieId = req.params.id;
 
-  connexion.promise().query(
-    'SELECT * FROM movies WHERE id = ?',
-    [movieId])
-    .then((result) => {
-      if (result[0].length) res.status(201).json(result[0]);
-      else res.status(404).send('Movie not found');
-    }).catch((err) => {
-      res.send('Error retrieving data from database');
-    })
+
 });
 
 app.get('/api/movies', (req, res) => {
@@ -68,18 +60,30 @@ app.post('/api/movies', (req, res) => {
 })
 
 app.put("/api/movies/:id", (req, res) => {
+  console.log("API / Movies / id to put")
   const movieId = req.params.id;
   const moviesPropsToUpdate = req.body;
 
   connexion.promise().query(
-    'UPDATE movies SET ? WHERE id = ?',
-    [moviesPropsToUpdate, movieId])
+    'SELECT * FROM movies WHERE id = ?',
+    [movieId])
     .then((result) => {
-      res.send("Movie updated successfully")
+      if (result[0].length) {
+        connexion.promise().query(
+          'UPDATE movies SET ? WHERE id = ?',
+          [moviesPropsToUpdate, movieId])
+          .then((result) => {
+            res.send("Movie updated successfully")
+          })
+          .catch((err) => {
+            res.send("Error updating the movies")
+          })
+      }
+      else res.status(404).send('Movie not found');
+    }).catch((err) => {
+      res.send('Error retrieving data from database');
     })
-    .catch((err) => {
-      res.send("Error updating the movies")
-    })
+
 })
 
 app.get('/api/users/:id', (req, res) => {
