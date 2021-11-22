@@ -75,23 +75,7 @@ app.put("/api/movies/:id", (req, res) => {
       res.send("Movie updated successfully")
     })
     .catch((err) => {
-      res.send("Error updating the movie")
-    })
-})
-
-app.delete("/api/movies/:id", (req, res) => {
-  const movieId = req.params.id;
-
-  connexion.promise().query(
-    'DELETE FROM movies WHERE id = ?',
-    [movieId])
-    .then((result) => {
-      res.send('Movie deleted successfully')
-    })
-    .catch((err) => {
-      res.send("Error deleting the movie")
-    })
-});
+      res.send("Error updating the mov
 
 app.get('/api/users/:id', (req, res) => {
   const userId = req.params.id;
