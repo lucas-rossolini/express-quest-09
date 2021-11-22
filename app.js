@@ -73,7 +73,7 @@ app.put("/api/movies/:id", (req, res) => {
           'UPDATE movies SET ? WHERE id = ?',
           [moviesPropsToUpdate, movieId])
           .then((result) => {
-            res.send("Movie updated successfully")
+            res.send({ id: movieId, ...moviesPropsToUpdate })
           })
           .catch((err) => {
             res.send("Error updating the movies")
