@@ -1,7 +1,23 @@
 const connection = require("../db-config");
 const Joi = require("joi");
+const argon2 = require("argon2");
 
 const db = connection.promise();
+
+const hashingOptions = {
+  type: argon2.argon2id,
+  memoryCost: 2 ** 16,
+  timeCost: 5,
+  parallelism: 1,
+};
+
+const hashPassword = (plainPassword) => {
+  return argon2.hash(plainPassword, hashingOptions);
+};
+
+const verifyPassword = (plainPassword, hashedPassword) => {
+  return argon2.verify(hashedPassword, plainPassword, hashingOptions);
+};
 
 const validateUserData = (data) => {
   return Joi.object({
@@ -10,7 +26,23 @@ const validateUserData = (data) => {
     lastname: Joi.string().max(255),
     city: Joi.string().allow(null, "").max(255),
     language: Joi.string().allow(null, "").max(255),
+    password: Joi.string().max(255),
   }).validate(data, { abortEarly: false });
+};
+
+const findMany = ({ filters: { language } }) => {
+  let query = "SELECT * FROM users";
+  let sqlValues = [];
+
+  if (language) {
+    query += " WHERE language = ?";
+    sqlValues.push(language);
+  }
+
+  return db.query(query, sqlValues).then(([results]) => {
+    console.log(results);
+    return results;
+  });
 };
 
 const findOne = (id) => {
@@ -19,19 +51,35 @@ const findOne = (id) => {
     .then((results) => results);
 };
 
-const createOne = ({ firstname, lastname, email, city, language }) => {
+const createOne = ({
+  email,
+  firstname,
+  lastname,
+  city,
+  language,
+  hashedPassword,
+}) => {
+  console.log();
   return db
     .query(
-      "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
+      "INSERT INTO users (email, firstname, lastname, city, language, hashedPassword) VALUES (?, ?, ?, ?, ?, ?)",
+      [email, firstname, lastname, city, language, hashedPassword]
     )
     .then(([result]) => {
+      console.log(result);
       const id = result.insertId;
-      return { id, firstname, lastname, email, city, language };
+      return { id, email, firstname, lastname, city, language };
     });
 };
 
-const updateOne = ({ firstname, lastname, email, city, language }) => {
+const updateOne = ({
+  firstname,
+  lastname,
+  email,
+  city,
+  language,
+  hashedPassword,
+}) => {
   return db
     .query("UPDATE users SET ? WHERE id = ?", [data, id])
     .then((result) => result);
@@ -43,10 +91,21 @@ const deleteOne = (id) => {
     .then((result) => "User deleted successfully");
 };
 
+const findByEmail = (email) => {
+  return connection.promise().query(
+    'SELECT hashedPassword, id FROM users WHERE email = ?',
+    [email])
+    .then((results) => results[0][0])
+}
+
 module.exports = {
   validateUserData,
+  findMany,
   findOne,
   createOne,
   updateOne,
   deleteOne,
+  hashPassword,
+  verifyPassword,
+  findByEmail,
 };

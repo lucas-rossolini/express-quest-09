@@ -3,6 +3,17 @@ const usersRouter = require("express").Router();
 // Import the users model that we'll need in controller functions
 const Users = require("../models/users");
 
+usersRouter.get("/", (req, res) => {
+  const { language } = req.query;
+  Users.findMany({ filters: { language } })
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      res.send("Error retrieving users from database");
+    });
+});
+
 usersRouter.get("/:id", (req, res) => {
   Users.findOne(req.params.id)
     .then((result) => {
@@ -16,15 +27,24 @@ usersRouter.get("/:id", (req, res) => {
 
 usersRouter.post("/", (req, res) => {
   const error = Users.validateUserData(req.body);
-  if (error) {
+  if (error.details) {
     res.status(422).json({ validationErrors: error.details });
   } else {
-    Users.createOne(req.body)
-      .then((result) => {
-        res.send(result);
+    Users.hashPassword(req.body.password)
+      .then((hashedPassword) => {
+        const newUser = { ...req.body, ...{ hashedPassword } };
+        delete newUser.password;
+
+        Users.createOne(newUser)
+          .then((result) => {
+            res.send(result);
+          })
+          .catch((err) => {
+            res.send("Error saving the user");
+          });
       })
       .catch((err) => {
-        res.send("Error saving the user");
+        console.error("Hashing Error");
       });
   }
 });
@@ -56,10 +76,10 @@ usersRouter.delete("/:id", (req, res) => {
   Users.deleteOne(req.params.id)
     .then((result) => {
       res.json(result);
-    }).catch((err) => {
-      res.send('Error deleting users from database');
     })
+    .catch((err) => {
+      res.send("Error deleting users from database");
+    });
 });
 
 module.exports = usersRouter;
-
